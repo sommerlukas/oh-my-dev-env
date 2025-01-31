@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/zsh
 
 while getopts ":hs" option; do
 	case $option in
@@ -22,7 +22,7 @@ cur_dir=`pwd`
 # Install nvim itself if not present on the machine
 nvim_exe=`which nvim`
 
-if [ -x "$nvim_exe" ]; then
+if [[ -x "$nvim_exe" ]]; then
 	printf "Using 'nvim' executable %s\n" "$nvim_exe"
 else
 	printf "'nvim' not found, installing...\n"
@@ -103,6 +103,25 @@ else
 		rm -rf "$ripgrep_tmp_dir"
 		ln -s "$HOME/bin/ripgrep/rg" "$HOME/bin/rg"
 	fi
+fi
+
+# Install tmux
+tmux_exe=`which tmux`
+
+if [ -x "$tmux_exe" ]; then
+	printf "Using 'tmux' executable %s\n" "$tmux_exe"
+else
+	echo "'rg' not found, installing..."
+	if ! sudo apt install ripgrep; then
+		echo "Failed to install tmux from system package manager, please install manually"
+	fi
+fi
+
+if [[ ":$PATH:" == *":$HOME/bin:"* ]]; then
+	echo "HOME/bin already part of PATH"
+else
+	echo 'Adding HOME/bin to PATH'
+	echo 'export PATH=$HOME/bin:$PATH' >> $HOME/.zshrc
 fi
 
 
