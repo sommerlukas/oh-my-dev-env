@@ -15,7 +15,7 @@ while getopts ":hs" option; do
 	esac
 done
 
-echo "Starting bootstrap..."
+echo "Starting tool installation..."
 
 cur_dir=`pwd`
 
@@ -28,12 +28,12 @@ else
 	printf "'nvim' not found, installing...\n"
 	nvim_tmp_dir=`mktemp -d`
 	cd "$nvim_tmp_dir"
-	wget -q https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
-	tar xzf nvim-linux64.tar.gz
-	mv nvim-linux64 $HOME/bin/nvim-linux64
+	wget -q https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-x86_64.tar.gz
+	tar xzf nvim-linux-x86_64.tar.gz
+	mv nvim-linux-x86_64 $HOME/bin/nvim-linux-x86_64
 	cd "$cur_dir"	
 	rm -rf "$nvim_tmp_dir"
-	ln -s "$HOME/bin/nvim-linux64/bin/nvim" "$HOME/bin/nvim"
+	ln -s "$HOME/bin/nvim-linux-x86_64/bin/nvim" "$HOME/bin/nvim"
 fi
 
 # Install clangd
@@ -56,29 +56,6 @@ else
 		cd "$cur_dir"	
 		rm -rf "$clangd_tmp_dir"
 		ln -s "$HOME/bin/clangd_19.1.2/bin/clangd" "$HOME/bin/clangd"
-	fi
-fi
-
-# Install treesitter
-treesitter_exe=`which tree-sitter-cli`
-
-if [ -x "$treesitter_exe" ]; then
-	printf "Using 'tree-sitter-cli' executable %s\n" "$treesitter_exe"
-else
-	echo "'tree-sitter-cli' not found, installing..."
-	if [ ! -z "$system_mode" ]; then
-		if ! sudo apt install tree-sitter-cli; then
-			echo "Failed to install tree-sitter-cli from system package manager, please install manually"
-		fi
-	else
-		treesitter_tmp_dir=`mktemp -d`
-		cd "$treesitter_tmp_dir"
-		wget -q https://github.com/tree-sitter/tree-sitter/releases/download/v0.24.7/tree-sitter-linux-x64.gz
-		gzip -d -q tree-sitter-linux-x64.gz
-		mv tree-sitter-linux-x64 $HOME/bin/tree-sitter-cli
-		chmod +x $HOME/bin/tree-sitter-cli
-		cd "$cur_dir"	
-		rm -rf "$treesitter_tmp_dir"
 	fi
 fi
 
@@ -117,13 +94,41 @@ else
 	fi
 fi
 
-if [[ ":$PATH:" == *":$HOME/bin:"* ]]; then
-	echo "HOME/bin already part of PATH"
-else
-	echo 'Adding HOME/bin to PATH'
-	echo 'export PATH=$HOME/bin:$PATH' >> $HOME/.zshrc
+# Install nvm and use it to install node and npm.
+mkdir -p "$HOME/bin/nvm"
+# Set the PROFILE to null to avoid nvm adding paths to the profile.
+PROFILE=/dev/null bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | NVM_DIR="$HOME/bin/nvm" bash'
+old_path=$PATH
+source "$HOME/bin/nvm/nvm.sh"
+nvm install 22.13.1
+
+# Install pyright via npm
+npm install --prefix "$HOME/bin/npm-packages" -g pyright
+
+ubuntu_version=`lsb_release -r | grep -E -oh "[0-9]+" | head -1`
+
+if [[ ubuntu_version -gt 20 ]]; then
+	npm install --prefix "$HOME/bin/npm-packages" -g tree-sitter-cli
 fi
 
+# Revert changes made to PATH by nvm to make them permanent
+# in the next step.
+export PATH=$old_path
 
+add_to_path() {
+	local dir=$1
+	if [[ ":$PATH:" == *":$HOME/$dir"* ]]; then
+        	echo "HOME/$dir already part of PATH"
+	else
+        	echo "Adding HOME/$dir to PATH"
+		echo "export PATH=\$HOME/$dir:\$PATH" >> $HOME/.zshrc
+	fi
+}
+
+add_to_path "bin"
+add_to_path "bin/nvm/versions/node/v22.13.1/bin"
+add_to_path "bin/npm-packages/bin"
+
+echo "Finished tool installation"
 
 exit 0
