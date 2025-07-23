@@ -68,7 +68,7 @@ else
 	echo "'rg' not found, installing..."
 	if [ ! -z "$system_mode" ]; then
 		if ! sudo apt install ripgrep; then
-			echo "Failed to install tree-sitter-cli from system package manager, please install manually"
+			echo "Failed to install ripgrep from system package manager, please install manually"
 		fi
 	else
 		ripgrep_tmp_dir=`mktemp -d`
@@ -89,7 +89,7 @@ if [ -x "$tmux_exe" ]; then
 	printf "Using 'tmux' executable %s\n" "$tmux_exe"
 else
 	echo "'rg' not found, installing..."
-	if ! sudo apt install ripgrep; then
+	if ! sudo apt install tmux; then
 		echo "Failed to install tmux from system package manager, please install manually"
 	fi
 fi
@@ -129,6 +129,6 @@ add_to_path "bin"
 add_to_path "bin/nvm/versions/node/v22.13.1/bin"
 add_to_path "bin/npm-packages/bin"
 
-echo "Finished tool installation"
+echo "Finished tool installation, source ~/.zshrc to make tools available"
 
 exit 0

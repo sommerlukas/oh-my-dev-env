@@ -39,6 +39,8 @@ install_config_file() {
   cp "$source_file" "$target_file"
 }
 
+# Set XDG config dir if not already set
+: "${XDG_CONFIG_HOME:=$HOME/.config}"
 
 install_config_file "tmux.conf" "$HOME/.tmux.conf"
 install_config_file "init.lua" "$XDG_CONFIG_HOME/nvim/init.lua"
