@@ -24,7 +24,7 @@ ZSHRC="$HOME/.zshrc"
 # Add FOO_DIR environment variable to .zshrc if it doesn't already exist
 OMDE_DIR_LINE='export OMDE_DIR=$HOME/.oh-my-dev-env'
 if ! line_exists "$OMDE_DIR_LINE" "$ZSHRC"; then
-  echo "Adding FOO_DIR to .zshrc..."
+  echo "Adding OMDE_DIR to .zshrc..."
   echo "$OMDE_DIR_LINE" >> "$ZSHRC"
 else
   echo "OMDE_DIR is already set in .zshrc."
