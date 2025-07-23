@@ -107,7 +107,8 @@ local lspconfig = require('lspconfig')
 
 -- Setup clangd language server for C/C++
 lspconfig.clangd.setup {
-  cmd = { '/usr/bin/clangd-15', '--header-insertion=never' }
+  cmd = { 'clangd', '--header-insertion=never', '--completion-style=detailed',
+        '--function-arg-placeholders=1'}
 }
 
 -- Setup ruff and pyright for Python
