@@ -58,7 +58,7 @@ update_repository() {
   git pull "$REPO_URL" || { echo "Error: Failed to update the repository."; return 1; }
 
   # Run the config-install.sh script
-  if [ -f "config-install.sh" ]; then
+  if [ -f "$OMDE_DIR/scripts/config-install.sh" ]; then
     echo "Running config-install.sh..."
     $OMDE_DIR/scripts/config-install.sh || { echo "Error: Failed to run config-install.sh."; return 1; }
   else
@@ -70,8 +70,8 @@ update_repository() {
 # Function to get the number of commits different between the local and remote branches
 get_commit_diff_count() {
   # Fetch the latest updates from the remote repository
-  git fetch "$REPO_URL" || { echo "Error: Failed to fetch updates."; return 1; }
   local remote_name=$(git remote show)
+  git fetch "$remote_name" || { echo "Error: Failed to fetch updates."; return 1; }
 
   # Get the number of commits ahead or behind the current local branch
   local branch_name=$(git rev-parse --abbrev-ref HEAD)
