@@ -30,6 +30,7 @@ else
 	cd "$nvim_tmp_dir"
 	wget -q https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-x86_64.tar.gz
 	tar xzf nvim-linux-x86_64.tar.gz
+  mkdir -p $HOME/bin
 	mv nvim-linux-x86_64 $HOME/bin/nvim-linux-x86_64
 	cd "$cur_dir"	
 	rm -rf "$nvim_tmp_dir"
@@ -44,7 +45,7 @@ if [ -x "$clangd_exe" ]; then
 else
 	echo "'clangd' not found, installing..."
 	if [ ! -z "$system_mode" ]; then
-		if ! sudo apt install clangd; then
+		if ! sudo apt install -y clangd; then
 			echo "Failed to install clangd from system package manager, please install manually"
 		fi
 	else
@@ -52,6 +53,7 @@ else
 		cd "$clangd_tmp_dir"
 		wget -q https://github.com/clangd/clangd/releases/download/19.1.2/clangd-linux-19.1.2.zip	
 		unzip clangd-linux-19.1.2.zip
+    mkdir -p $HOME/bin
 		mv clangd_19.1.2 $HOME/bin/clangd_19.1.2
 		cd "$cur_dir"	
 		rm -rf "$clangd_tmp_dir"
@@ -67,7 +69,7 @@ if [ -x "$ripgrep_exe" ]; then
 else
 	echo "'rg' not found, installing..."
 	if [ ! -z "$system_mode" ]; then
-		if ! sudo apt install ripgrep; then
+		if ! sudo apt install -y ripgrep; then
 			echo "Failed to install ripgrep from system package manager, please install manually"
 		fi
 	else
@@ -75,6 +77,7 @@ else
 		cd "$ripgrep_tmp_dir"
 		wget -q https://github.com/BurntSushi/ripgrep/releases/download/14.1.1/ripgrep-14.1.1-x86_64-unknown-linux-musl.tar.gz
 		tar xzf ripgrep-14.1.1-x86_64-unknown-linux-musl.tar.gz
+    mkdir -p $HOME/bin
 		mv ripgrep-14.1.1-x86_64-unknown-linux-musl $HOME/bin/ripgrep
 		cd "$cur_dir"	
 		rm -rf "$ripgrep_tmp_dir"
@@ -89,7 +92,7 @@ if [ -x "$tmux_exe" ]; then
 	printf "Using 'tmux' executable %s\n" "$tmux_exe"
 else
 	echo "'rg' not found, installing..."
-	if ! sudo apt install tmux; then
+	if ! sudo apt install -y tmux; then
 		echo "Failed to install tmux from system package manager, please install manually"
 	fi
 fi
