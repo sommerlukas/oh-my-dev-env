@@ -28,9 +28,9 @@ else
 	printf "'nvim' not found, installing...\n"
 	nvim_tmp_dir=`mktemp -d`
 	cd "$nvim_tmp_dir"
-	wget -q https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-x86_64.tar.gz
+	wget -q https://github.com/neovim/neovim/releases/download/v0.11.5/nvim-linux-x86_64.tar.gz
 	tar xzf nvim-linux-x86_64.tar.gz
-  mkdir -p $HOME/bin
+  	mkdir -p $HOME/bin
 	mv nvim-linux-x86_64 $HOME/bin/nvim-linux-x86_64
 	cd "$cur_dir"	
 	rm -rf "$nvim_tmp_dir"

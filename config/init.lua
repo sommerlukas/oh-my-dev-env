@@ -103,26 +103,27 @@ require("ibl").setup()
 -- Add additional capabilities supported by nvim-cmp
 local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-local lspconfig = require('lspconfig')
 
 -- Setup clangd language server for C/C++
-lspconfig.clangd.setup {
+vim.lsp.config('clangd', {
   cmd = { 'clangd', '--header-insertion=never', '--completion-style=detailed',
         '--function-arg-placeholders=1'}
-}
+})
+vim.lsp.enable('clangd')
 
 -- Setup ruff and pyright for Python
-require('lspconfig').ruff.setup{}
-require('lspconfig').pyright.setup{
+vim.lsp.enable('ruff')
+vim.lsp.config('pyright', {
   settings = {
     pyright = {
       disableOrganizeImports = true
     }
   }
-}
+})
+vim.lsp.enable('pyright')
 
 -- Setup mlir-lsp-server for MLIR
-require'lspconfig'.mlir_lsp_server.setup{}
+vim.lsp.enable('mlir_lsp_server')
 
 -- Global mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
