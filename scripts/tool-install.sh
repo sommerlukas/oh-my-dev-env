@@ -19,31 +19,39 @@ echo "Starting tool installation..."
 
 cur_dir=`pwd`
 
-# Install nvim itself if not present on the machine
-nvim_exe=`which nvim`
+NVIM_VERSION="0.11.5"
+CLANGD_VERSION="22.1.0"
 
-if [[ -x "$nvim_exe" ]]; then
-	printf "Using 'nvim' executable %s\n" "$nvim_exe"
-else
-	printf "'nvim' not found, installing...\n"
+get_tool_version() {
+	local tool_exe=$1
+	"$tool_exe" --version 2>/dev/null | head -1 | grep -E -o "v?[0-9]+(\.[0-9]+)+" | head -1 | sed "s/^v//"
+}
+
+version_lt() {
+	local current_version=$1
+	local target_version=$2
+
+	if [[ -z "$current_version" ]]; then
+		return 0
+	fi
+
+	[[ "$current_version" != "$target_version" ]] && [[ "$(printf "%s\n%s\n" "$current_version" "$target_version" | sort -V | head -1)" == "$current_version" ]]
+}
+
+install_nvim() {
 	nvim_tmp_dir=`mktemp -d`
 	cd "$nvim_tmp_dir"
-	wget -q https://github.com/neovim/neovim/releases/download/v0.11.5/nvim-linux-x86_64.tar.gz
+	wget -q "https://github.com/neovim/neovim/releases/download/v$NVIM_VERSION/nvim-linux-x86_64.tar.gz"
 	tar xzf nvim-linux-x86_64.tar.gz
-  	mkdir -p $HOME/bin
+	mkdir -p $HOME/bin
+	rm -rf "$HOME/bin/nvim-linux-x86_64"
 	mv nvim-linux-x86_64 $HOME/bin/nvim-linux-x86_64
-	cd "$cur_dir"	
+	cd "$cur_dir"
 	rm -rf "$nvim_tmp_dir"
-	ln -s "$HOME/bin/nvim-linux-x86_64/bin/nvim" "$HOME/bin/nvim"
-fi
+	ln -sfn "$HOME/bin/nvim-linux-x86_64/bin/nvim" "$HOME/bin/nvim"
+}
 
-# Install clangd
-clangd_exe=`which clangd`
-
-if [ -x "$clangd_exe" ]; then
-	printf "Using 'clangd' executable %s\n" "$clangd_exe"
-else
-	echo "'clangd' not found, installing..."
+install_clangd() {
 	if [ ! -z "$system_mode" ]; then
 		if ! sudo apt install -y clangd; then
 			echo "Failed to install clangd from system package manager, please install manually"
@@ -51,14 +59,47 @@ else
 	else
 		clangd_tmp_dir=`mktemp -d`
 		cd "$clangd_tmp_dir"
-		wget -q https://github.com/clangd/clangd/releases/download/19.1.2/clangd-linux-19.1.2.zip	
-		unzip clangd-linux-19.1.2.zip
-    mkdir -p $HOME/bin
-		mv clangd_19.1.2 $HOME/bin/clangd_19.1.2
-		cd "$cur_dir"	
+		wget -q "https://github.com/clangd/clangd/releases/download/$CLANGD_VERSION/clangd-linux-$CLANGD_VERSION.zip"
+		unzip "clangd-linux-$CLANGD_VERSION.zip"
+		mkdir -p $HOME/bin
+		rm -rf "$HOME/bin/clangd_$CLANGD_VERSION"
+		mv "clangd_$CLANGD_VERSION" "$HOME/bin/clangd_$CLANGD_VERSION"
+		cd "$cur_dir"
 		rm -rf "$clangd_tmp_dir"
-		ln -s "$HOME/bin/clangd_19.1.2/bin/clangd" "$HOME/bin/clangd"
+		ln -sfn "$HOME/bin/clangd_$CLANGD_VERSION/bin/clangd" "$HOME/bin/clangd"
 	fi
+}
+
+# Install nvim itself if not present on the machine or too old
+nvim_exe=`which nvim`
+
+if [[ -x "$nvim_exe" ]]; then
+	nvim_installed_version=`get_tool_version "$nvim_exe"`
+	if version_lt "$nvim_installed_version" "$NVIM_VERSION"; then
+		printf "'nvim' version %s is older than %s, installing...\n" "$nvim_installed_version" "$NVIM_VERSION"
+		install_nvim
+	else
+		printf "Using 'nvim' executable %s, version %s\n" "$nvim_exe" "$nvim_installed_version"
+	fi
+else
+	printf "'nvim' not found, installing...\n"
+	install_nvim
+fi
+
+# Install clangd
+clangd_exe=`which clangd`
+
+if [ -x "$clangd_exe" ]; then
+	clangd_installed_version=`get_tool_version "$clangd_exe"`
+	if version_lt "$clangd_installed_version" "$CLANGD_VERSION"; then
+		printf "'clangd' version %s is older than %s, installing...\n" "$clangd_installed_version" "$CLANGD_VERSION"
+		install_clangd
+	else
+		printf "Using 'clangd' executable %s, version %s\n" "$clangd_exe" "$clangd_installed_version"
+	fi
+else
+	echo "'clangd' not found, installing..."
+	install_clangd
 fi
 
 # Install ripgrep 
@@ -91,7 +132,7 @@ tmux_exe=`which tmux`
 if [ -x "$tmux_exe" ]; then
 	printf "Using 'tmux' executable %s\n" "$tmux_exe"
 else
-	echo "'rg' not found, installing..."
+	echo "'tmux' not found, installing..."
 	if ! sudo apt install -y tmux; then
 		echo "Failed to install tmux from system package manager, please install manually"
 	fi
