@@ -9,6 +9,7 @@ print_usage() {
   echo "      tools   - Install tools only."
   echo "      config  - Install config only"
   echo "      all     - Install tools and config"
+  echo "  omde py-init [venv_dir]   - Initialize a Python virtual environment for nvim tooling."
   echo "  omde update               - Check for updates"
 }
 
@@ -45,6 +46,10 @@ case "$1" in
     echo "Updating repository..."
     $OMDE_DIR/scripts/update.sh check || { echo "Error: Failed to update."; exit 1; }
     ;;
+
+  py-init)
+    $OMDE_DIR/scripts/py-init.sh ${@:2} || { echo "Error: Failed to initialize Python virtual environment."; exit 1; }
+    ;;
   
   *)
     echo "Error: Unknown command."
@@ -52,4 +57,3 @@ case "$1" in
     exit 1
     ;;
 esac
-
