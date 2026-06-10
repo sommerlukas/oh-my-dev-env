@@ -22,6 +22,7 @@ cur_dir=`pwd`
 NVIM_VERSION="0.11.5"
 CLANGD_VERSION="22.1.0"
 TREE_SITTER_VERSION="0.24.7"
+DIRENV_VERSION="2.37.1"
 
 get_tool_version() {
 	local tool_exe=$1
@@ -81,6 +82,17 @@ install_tree_sitter() {
 	mv tree-sitter-linux-x64 "$HOME/bin/tree-sitter"
 	cd "$cur_dir"
 	rm -rf "$tree_sitter_tmp_dir"
+}
+
+install_direnv() {
+	direnv_tmp_dir=`mktemp -d`
+	cd "$direnv_tmp_dir"
+	wget -q "https://github.com/direnv/direnv/releases/download/v$DIRENV_VERSION/direnv.linux-amd64"
+	chmod +x direnv.linux-amd64
+	mkdir -p $HOME/bin
+	mv direnv.linux-amd64 "$HOME/bin/direnv"
+	cd "$cur_dir"
+	rm -rf "$direnv_tmp_dir"
 }
 
 # Install nvim itself if not present on the machine or too old
@@ -153,6 +165,16 @@ if [ -x "$tree_sitter_exe" ]; then
 else
 	echo "'tree-sitter' not found, installing..."
 	install_tree_sitter
+fi
+
+# Install direnv
+direnv_exe=`which direnv`
+
+if [ -x "$direnv_exe" ]; then
+	printf "Using 'direnv' executable %s\n" "$direnv_exe"
+else
+	echo "'direnv' not found, installing..."
+	install_direnv
 fi
 
 # Install tmux
