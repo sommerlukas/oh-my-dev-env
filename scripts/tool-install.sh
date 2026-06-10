@@ -167,27 +167,6 @@ else
 	fi
 fi
 
-# Install nvm and use it to install node and npm.
-mkdir -p "$HOME/bin/nvm"
-# Set the PROFILE to null to avoid nvm adding paths to the profile.
-PROFILE=/dev/null bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | NVM_DIR="$HOME/bin/nvm" bash'
-old_path=$PATH
-source "$HOME/bin/nvm/nvm.sh"
-nvm install 22.13.1
-
-# Install pyright via npm
-npm install --prefix "$HOME/bin/npm-packages" -g pyright
-
-ubuntu_version=`lsb_release -r | grep -E -oh "[0-9]+" | head -1`
-
-if [[ ubuntu_version -gt 20 ]]; then
-	npm install --prefix "$HOME/bin/npm-packages" -g tree-sitter-cli
-fi
-
-# Revert changes made to PATH by nvm to make them permanent
-# in the next step.
-export PATH=$old_path
-
 add_to_path() {
 	local dir=$1
 	if [[ ":$PATH:" == *":$HOME/$dir"* ]]; then
@@ -199,8 +178,6 @@ add_to_path() {
 }
 
 add_to_path "bin"
-add_to_path "bin/nvm/versions/node/v22.13.1/bin"
-add_to_path "bin/npm-packages/bin"
 
 echo "Finished tool installation, source ~/.zshrc to make tools available"
 
