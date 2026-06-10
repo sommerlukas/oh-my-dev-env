@@ -21,6 +21,7 @@ cur_dir=`pwd`
 
 NVIM_VERSION="0.11.5"
 CLANGD_VERSION="22.1.0"
+TREE_SITTER_VERSION="0.24.7"
 
 get_tool_version() {
 	local tool_exe=$1
@@ -68,6 +69,18 @@ install_clangd() {
 		rm -rf "$clangd_tmp_dir"
 		ln -sfn "$HOME/bin/clangd_$CLANGD_VERSION/bin/clangd" "$HOME/bin/clangd"
 	fi
+}
+
+install_tree_sitter() {
+	tree_sitter_tmp_dir=`mktemp -d`
+	cd "$tree_sitter_tmp_dir"
+	wget -q "https://github.com/tree-sitter/tree-sitter/releases/download/v$TREE_SITTER_VERSION/tree-sitter-linux-x64.gz"
+	gunzip tree-sitter-linux-x64.gz
+	chmod +x tree-sitter-linux-x64
+	mkdir -p $HOME/bin
+	mv tree-sitter-linux-x64 "$HOME/bin/tree-sitter"
+	cd "$cur_dir"
+	rm -rf "$tree_sitter_tmp_dir"
 }
 
 # Install nvim itself if not present on the machine or too old
@@ -124,6 +137,22 @@ else
 		rm -rf "$ripgrep_tmp_dir"
 		ln -s "$HOME/bin/ripgrep/rg" "$HOME/bin/rg"
 	fi
+fi
+
+# Install tree-sitter
+tree_sitter_exe=`which tree-sitter`
+
+if [ -x "$tree_sitter_exe" ]; then
+	tree_sitter_installed_version=`get_tool_version "$tree_sitter_exe"`
+	if version_lt "$tree_sitter_installed_version" "$TREE_SITTER_VERSION"; then
+		printf "'tree-sitter' version %s is older than %s, installing...\n" "$tree_sitter_installed_version" "$TREE_SITTER_VERSION"
+		install_tree_sitter
+	else
+		printf "Using 'tree-sitter' executable %s, version %s\n" "$tree_sitter_exe" "$tree_sitter_installed_version"
+	fi
+else
+	echo "'tree-sitter' not found, installing..."
+	install_tree_sitter
 fi
 
 # Install tmux
