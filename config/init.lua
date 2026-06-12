@@ -209,10 +209,8 @@ require('bufferline').setup{
 -- Load Telescope extension for faster sorting
 require('telescope').load_extension('fzf')
 require('telescope').load_extension('file_browser')
-vim.api.nvim_set_keymap(
-  "n",
-  "<space>fb",
-  ":Telescope file_browser<CR>",
+vim.keymap.set("n", "<leader>fb",
+  ":Telescope file_browser path=%:p:h select_buffer=true<CR>",
   { noremap = true }
 )
 vim.keymap.set('n', '<leader>fe', ":Telescope file_browser<CR>", { noremap = true })
