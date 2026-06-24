@@ -103,6 +103,64 @@ require("ibl").setup()
 -- Add additional capabilities supported by nvim-cmp
 local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
+local function buffer_has_lsp_client(bufnr, name)
+  for _, client in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
+    if client.name == name then
+      return true
+    end
+  end
+
+  return false
+end
+
+local function git_clang_format_current_file()
+  local file = vim.api.nvim_buf_get_name(0)
+  if file == '' then
+    return
+  end
+
+  -- git clang-format formats the file on disk, so persist buffer changes first.
+  if vim.bo.modified then
+    vim.cmd('silent write')
+  end
+
+  local dir = vim.fn.fnamemodify(file, ':h')
+  local filename = vim.fn.fnamemodify(file, ':t')
+
+  vim.system(
+    -- Passing HEAD makes git clang-format use working-tree changes in this file.
+    -- --force allows it to update those saved, unstaged buffer edits in place.
+    { 'git', '-C', dir, 'clang-format', '--force', 'HEAD', '--', filename },
+    { text = true },
+    function(result)
+      vim.schedule(function()
+        if result.code ~= 0 then
+          vim.notify(
+            result.stderr ~= '' and result.stderr or 'git clang-format failed',
+            vim.log.levels.ERROR
+          )
+          return
+        end
+
+        -- Reload the buffer if git clang-format changed the file on disk.
+        vim.cmd('checktime')
+      end)
+    end
+  )
+end
+
+local function format_current_buffer()
+  local bufnr = vim.api.nvim_get_current_buf()
+
+  -- For clangd/C++ buffers, format only Git changes to avoid unrelated churn.
+  if buffer_has_lsp_client(bufnr, 'clangd') then
+    git_clang_format_current_file()
+    return
+  end
+
+  vim.lsp.buf.format { async = true }
+end
+
 
 -- Setup clangd language server for C/C++
 vim.lsp.config('clangd', {
@@ -157,7 +215,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
     vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, opts)
     vim.keymap.set({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action, opts)
     vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
-    vim.keymap.set('n', '<space>f', function()
+    vim.keymap.set('n', '<space>f', format_current_buffer, opts)
+    vim.keymap.set('v', '<space>f', function()
       vim.lsp.buf.format { async = true }
     end, opts)
   end,
