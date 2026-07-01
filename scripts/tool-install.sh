@@ -200,6 +200,7 @@ add_to_path() {
 }
 
 add_to_path "bin"
+echo "export EDITOR=nvim" >> $HOME/.zshrc
 
 echo "Finished tool installation, source ~/.zshrc to make tools available"
 
